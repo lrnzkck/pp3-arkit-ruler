@@ -71,7 +71,40 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         }
     }
     
-    tran
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        
+        DispatchQueue.main.async {
+            
+            let results = self.sceneView.hitTest(
+                self.view.center,
+                types: [.featurePoint])
+            guard let result = results.first else {
+                return
+            }
+            
+            self.initialized = true
+            
+            if self.measures.isEmpty {
+                self.infoLabel.text = "Tippen, um zu messen.."
+            }
+            
+            if self.measuring {
+                let actualVector = SCNVector3Make(
+                    result.worldTransform.columns.3.x, result.worldTransform.columns.3.y, result.worldTransform.columns.3.z)
+                
+                if self.startPoint == self.endPoint {
+                    self.startPoint = actualVector
+                    self.actualMeasure = Measure(with: self.startPoint, sceneView: self.sceneView)
+                } else {
+                    self.endPoint = actualVector
+                    self.infoLabel.text = String(format: "%.2f%@", self.startPoint.distance(to: self.endPoint),"m")
+                    
+                    self.actualMeasure!.update(with: self.endPoint)
+                    
+                }
+            }
+        }
+    }
     
 
     
